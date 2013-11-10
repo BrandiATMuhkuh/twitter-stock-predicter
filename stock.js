@@ -2,32 +2,10 @@ var        sys = require('sys'),
         twitter = require('twitter');
 var jf = require('jsonfile')
   , util = require('util');
+var argv = require('optimist').argv;
 
 var        count = 0,
         lastc = 0;
-
-function tweet(data) {
-        count++;
-        if ( typeof data === 'string' )
-                sys.puts(data);
-        else if ( data.text && data.user && data.user.screen_name )
-                sys.puts('"' + data.text + '" -- ' + data.user.screen_name);
-        else if ( data.message )
-                sys.puts('ERROR: ' + sys.inspect(data));
-        else
-                sys.puts(sys.inspect(data));
-}
-
-function memrep() {
-        var rep = process.memoryUsage();
-        rep.tweets = count - lastc;
-        lastc = count;
-        console.log(JSON.stringify(rep));
-        // next report in 60 seconds
-        setTimeout(memrep, 60000);
-}
-
-
 
 var twit = new twitter({
 consumer_key: '1gUoBjwdye8w12h1hhA',
@@ -61,10 +39,40 @@ function posWord(data){
 
 }
 
+var stockCompany = "google";
 var catchWord = "android";
-var negWords = jf.readFileSync('./negativewords.json');
-var posWords = jf.readFileSync('./positivewords.json');
-//console.log(posWords[10],negWords[10]);
+if (argv.s) {
+    stockCompany = argv.s;
+}else{
+    console.log("missing parameter -s eg. node stock.js -s google");
+    return null;
+}
+
+if (argv.c) {
+    catchWord = argv.c;
+}else{
+    console.log("missing parameter -c eg. node stock.js -c android");
+    return null;
+}
+
+var words = null;
+var posNeg = null;
+
+if (argv.e) {
+    posNeg = argv.e;
+    if(argv.e === "pos"){
+        var words = jf.readFileSync('./positivewords.json');
+    }else if(argv.e === "neg"){
+        var words = jf.readFileSync('./negativewords.json');
+    }
+
+}else{
+    console.log("missing parameter -e eg. node stock.js -e pos");
+    return null;
+}
+
+
+
 
 function trackCreator(catchword, emotionArray){
 
@@ -76,7 +84,7 @@ function trackCreator(catchword, emotionArray){
 	return retArr;
 }
 
-var posArray = trackCreator(catchWord, posWords);
+var posArray = trackCreator(catchWord, words);
 
 //console.log(posArray[5]);
 // The default access level allows up to 400 track keywords            
@@ -87,7 +95,8 @@ twit.stream(
         stream.on('data', function (data) {
             //console.log(data);
             //console.log(data.text);
-            posWord(data.text);
+            //posWord(data.text);
+            console.log(posNeg, stockCompany, catchWord, data.text);
         });
     }
 );
