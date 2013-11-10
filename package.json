@@ -1,0 +1,13 @@
+{
+    "name": "twitter-stock-predicter",
+    "version": "0.0.1",
+    "private": true,
+    "scripts": {
+        "start": "node stock.js"
+    },
+    "dependencies": {
+        "jsonfile": "1.1.0",
+        "twitter": "0.2.4"
+    },
+    "license": "BSD"
+}
